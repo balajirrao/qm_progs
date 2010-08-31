@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+#Density Matrix Library
+
 import numpy as np
 import itertools as it
 
