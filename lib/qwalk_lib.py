@@ -3,7 +3,7 @@ import numpy as np
 
 #Utility functions
 def projector(vec) :
-	return np.outer(vec, vec);
+	return vec * vec.H
 
 tensor_product = np.kron
 
@@ -79,14 +79,13 @@ class QWalk:
 			self.__rho = projector(tensor_product(self.__coin_space['T'], self.__pos_space[0]))
 		else :
 			self.__rho = projector(tensor_product(
-				self.__coin_space['T'] + 1j * self.__coin_space['H'],
+				(self.__coin_space['T'] + 1j * self.__coin_space['H']) / np.sqrt(2),
 				self.__pos_space[0]))
 
 	def do(self, steps, operation_map=[]):
 		if (steps <= 0) :
 			print "Steps should be greater than zero"
 			return
-
 
 		for _i in range(steps) :
 			self.__rho = (self.__walk_op * self.__rho) * self.__walk_op.H;
