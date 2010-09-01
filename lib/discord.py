@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import multiprocessing as mp
 
 res = 25
+thread_count = 2
 
 def projector(v) :
 	return v * v.H
@@ -42,7 +43,7 @@ def T_min(rho_AB, dim_A = 2, dim_B = 2, qubit_subsys = 2) :
 	tpl = ((rho_AB, theta, phi, dim_A, dim_B, qubit_subsys) for theta in np.linspace(0, np.pi, res) for phi in np.linspace(0, 2 * np.pi, res))
 
 #Multiple Threaded
-	pool = mp.Pool(16)
+	pool = mp.Pool(thread_count)
 	values = pool.map(_T, tpl)
 
 #Single Threaded
