@@ -3,11 +3,15 @@
 import numpy as np
 import density_matrix
 import matplotlib.pyplot as plt
+import multiprocessing as mp
 
 res = 25
 
 def projector(v) :
 	return v * v.H
+
+def _T(args) :
+	return T(*args)
 
 def T(rho_AB, theta, phi, dim_A = 2, dim_B = 2, qubit_subsys = 2) :
 	_basis = [None for i in range(2)]
@@ -35,14 +39,16 @@ def T(rho_AB, theta, phi, dim_A = 2, dim_B = 2, qubit_subsys = 2) :
 	return t
 
 def T_min(rho_AB, dim_A = 2, dim_B = 2, qubit_subsys = 2) :
-	tp = ((theta, phi) for theta in np.linspace(0, np.pi, res) for phi in np.linspace(0, 2 * np.pi, res))
+	tpl = ((rho_AB, theta, phi, dim_A, dim_B, qubit_subsys) for theta in np.linspace(0, np.pi, res) for phi in np.linspace(0, 2 * np.pi, res))
 
-	t_min = np.inf
-	for t, p in tp:
-		t = T(rho_AB, t, p, dim_A = dim_A, dim_B = dim_B, qubit_subsys = qubit_subsys)
-		if (t < t_min):
-			t_min = t
-	return t_min
+#Multiple Threaded
+	pool = mp.Pool(16)
+	values = pool.map(_T, tpl)
+
+#Single Threaded
+#	values = map(_T, tpl)
+
+	return min(values)
 
 
 
