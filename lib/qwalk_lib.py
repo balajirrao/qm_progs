@@ -65,8 +65,8 @@ class QWalk:
 		self.__Lop = np.asmatrix(np.eye(len(position_space), k=+1))
 
 		if (circle == True) :
-			self.__Rop[0][-1] = 1
-			self.__Lop[-1][0] = 1
+			self.__Rop[0, -1] = 1
+			self.__Lop[-1, 0] = 1
 		
 		_move_op = \
 			tensor_product(projector(self.__coin_space['H']), self.__Rop) + \
