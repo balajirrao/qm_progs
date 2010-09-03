@@ -33,7 +33,11 @@ values = list()
 nodes_space = range(*options.node_range)
 
 for nodes in nodes_space:
-	pos_list = range (-nodes, nodes + 1)
+	if (nodes % 2 == 0) :
+		pos_list = range (-nodes / 2, nodes / 2)
+	else:
+		pos_list = range (-nodes / 2, nodes / 2 + 1)
+
 	pos_space = qwalk.PositionSpace(pos_list)
 	dim_B = len(pos_space)
 
