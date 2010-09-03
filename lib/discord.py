@@ -28,9 +28,9 @@ def T(rho_AB, theta, phi, dim_A = 2, dim_B = 2, qubit_subsys = 2) :
 #		_rho = _op * rho_AB * _op
 
 		p = np.trace(_rho).real
-
-		_rho_reduced = density_matrix.partial_trace(_rho, qubit_subsys , dim_A = dim_A, dim_B = dim_B) / p
-		t += p * density_matrix.S(_rho_reduced)
+		if (p != 0) :
+			_rho_reduced = density_matrix.partial_trace(_rho, qubit_subsys , dim_A = dim_A, dim_B = dim_B) / p
+			t += p * density_matrix.S(_rho_reduced)
 
 	return t
 
