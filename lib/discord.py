@@ -14,23 +14,48 @@ def projector(v) :
 def _T(args) :
 	return T(*args)
 
+_X = np.mat('0 1; 1 0')
+_Y = np.mat('0 -1j; 1j 0')
+_Z = np.mat('1 0; 0 -1')
+_I = np.eye(2)
+
+def E(n) :
+	_nx, _ny, _nz = n
+
+	return 0.5 * (_I + _nx * _X + _ny * _Y + _nz * _Z)
+
 def T(rho_AB, theta, phi, dim_A = 2, dim_B = 2, qubit_subsys = 2) :
-	_basis = [None for i in range(2)]
-	_x = np.cos (theta)
-	_y = np.sin (theta)
-	_basis[0] = np.mat([[_x], [np.exp(1j * phi) * _y]])
-	_basis[1] = np.mat([[_y], [-np.exp(1j * phi) * _x]])
+
+	_n = [None for i in range(3)]
+	_n[0] = (np.sin (theta) * np.cos (phi), \
+			np.sin (theta) * np.sin (phi), \
+			np.cos (theta))
+	
+	_n[1] = (np.sin (theta - np.pi) * np.cos (phi), \
+			np.sin (theta - np.pi) * np.sin (phi), \
+			np.cos (theta - np.pi))
+
+	_n[2] = (np.sin (np.pi - theta) * np.cos (np.pi + phi), \
+			np.sin (np.pi - theta) * np.sin (np.pi + phi), \
+			np.cos (np.pi - theta))
+
+	F = [None for i in range(3)]
+
+	F[0] = E(_n[0]);
+	F[1] = E(_n[1]) / 2;
+	F[2] = E(_n[2]) / 2;
+
+#	print sum(F)
 
 	t = 0
 
-	for i in range(len(_basis)):
+	for i in range(len(F)):
 		if (qubit_subsys == 1) :
-			_op = np.kron(projector(_basis[i]), np.eye(dim_B))
+			_op = np.kron(F[i], np.eye(dim_B))
 		else:
-			_op = np.kron(np.eye(dim_A), projector(_basis[i]))
+			_op = np.kron(np.eye(dim_A), F[i])
 
 		_rho = _op * rho_AB
-#		_rho = _op * rho_AB * _op
 
 		p = np.trace(_rho).real
 		if (p != 0) :
