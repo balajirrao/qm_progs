@@ -58,7 +58,7 @@ def S_cond(rho_AB, cond = (1, 2), dim_A = 2, dim_B = 2) :
 	return _x - _y
 
 def I(rho, dim_A = 2, dim_B = 2) :
-	rho_A = partial_trace(rho, subsys = 2, dim_A = dim_A, dim_B = dim_B)
-	rho_B = partial_trace(rho, subsys = 2, dim_A = dim_A, dim_B = dim_B)
+	rho_A = partial_trace(rho, 2, dim_A, dim_B)
+	rho_B = partial_trace(rho, 1, dim_A, dim_B)
 
 	return S(rho_A) + S(rho_B) - S(rho)
