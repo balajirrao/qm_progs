@@ -2,19 +2,30 @@
 
 # Quantum walk simulation
 
+from __future__ import print_function
+
 import qwalk_lib as qwalk
 import density_matrix as dm
-import discord
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from optparse import OptionParser
 
+import discord
+import qmid
+
+def print_v(*args) :
+	global options
+
+	if (options.verbose > 0) :
+		print (*args)
+	
+
 usage = 'usage %prog : [options]'
 parser = OptionParser(usage = usage)
 
-parser.add_option('-g', '--graphical', action = 'store_true', help = 'show graphical output', default = True, dest = 'graphical')
-parser.add_option('-v', '--verbose', help = 'verbose output ', type = int, default = 1, dest = 'verbose', metavar = "LEVEL")
+parser.add_option('', '--qd', help = 'Calculate QD', action='store_true', dest = 'qd_needed')
+parser.add_option('', '--qmid', help = 'Calculate QMID', action='store_true', dest = 'qmid_needed')
 
 parser.add_option('-N', '--node-range', type = 'int',  nargs = 3, help = 'Range of nodes to use', dest = 'node_range', metavar = "START END RESOLUTION")
 parser.add_option('-n', '--nodes', type = 'int',  default = 25, help = 'Number of nodes', dest = 'nodes', metavar = "NODES")
@@ -25,6 +36,9 @@ parser.add_option('-l', '--lamda', type = 'float',  default = 0, help = 'Lamda p
 parser.add_option('-t', '--traversals', type = 'int',  default = 5, help = 'Number of times to traverse the circle', dest = 'traversals', metavar = "N")
 parser.add_option('-T', '--traversals-range', type = 'int',  nargs = 3, help = 'Number of times to traverse the circle', dest = 'traversals_range', metavar = "N")
 
+parser.add_option('-g', '--graphical', action = 'store_true', help = 'show graphical output', default = True, dest = 'graphical')
+parser.add_option('-v', '--verbose', help = 'verbose output ', type = int, default = 1, dest = 'verbose', metavar = "LEVEL")
+
 (options, args) = parser.parse_args()
 
 #Noise parameter
@@ -34,7 +48,13 @@ lamda = 0
 coin_space = qwalk.CoinSpace()
 dim_A = len(coin_space)
 
-values = list()
+output_list_dict = dict()
+
+if (options.qd_needed) :
+	output_list_dict['QD'] = list()
+
+if (options.qmid_needed) :
+	output_list_dict['QMID'] = list()
 
 _options = 0
 
@@ -80,17 +100,22 @@ for nodes in nodes_space:
 		E[1] = np.kron(np.mat([[0, 0], [np.sqrt(lamda), 0]]), pos_space.I)
 
 		for traversals in traversals_space :
-			rho_CP = walk.do(traversals * nodes, E)
-			_qd = discord.T_min(rho_CP, dim_A, dim_B, qubit_subsys = 1) - dm.S_cond(rho_CP, (2, 1), dim_A, dim_B).real
-			values.append(_qd)
+			print_v ("Nodes : ", nodes, " Lambda = ", lamda, 'Traversals = ', traversals)
 
-			if options.verbose > 0 :
-				print "Nodes : ", nodes, " Lambda = ", lamda, 'Traversals = ', traversals
-				print "\tQD = ", _qd
+			rho_CP = walk.do(traversals * nodes, E)
+			if (options.qd_needed) :
+				_qd = discord.T_min(rho_CP, dim_A, dim_B, qubit_subsys = 1) - dm.S_cond(rho_CP, (2, 1), dim_A, dim_B).real
+				output_list_dict['QD'].append(_qd)
+				print_v ("\tQD = ", _qd)
+
+			if (options.qmid_needed) :
+				_qm = qmid.qmid(rho_CP, dim_A, dim_B)
+				output_list_dict['QMID'].append(_qm)
+				print_v ("\tQMID = ", _qm)
 			
-				if options.verbose > 1 :
-					rho_P = dm.partial_trace(rho_CP, subsys = 1, dim_B = len(pos_space), dim_A = len(coin_space))
-					print "\tProbabilities : ", np.diag(rho_P), ". Sum = ", np.trace(rho_P)
+			if (options.verbose > 1) :
+				rho_P = dm.partial_trace(rho_CP, subsys = 1, dim_B = len(pos_space), dim_A = len(coin_space))
+				print_v ("\tProbabilities : ", np.diag(rho_P), ". Sum = ", np.trace(rho_P))
 
 if (options.graphical) :
 	if options.node_range is not None :
@@ -106,10 +131,14 @@ if (options.graphical) :
 		_label = 'Traversals'
 		_title = 'Walk on circle with nodes = ' + str(options.nodes) + ', lamda = ' + str(options.lamda)
 
-	plt.plot(_x, values)
+	for k in output_list_dict.keys() :
+		_y = output_list_dict[k]
+		plt.plot(_x, _y, label = k)
+
+	plt.legend()
 	plt.xlabel(_label)
 	plt.title(_title)
 
-	plt.ylabel('D')
+	plt.ylabel('Y')
 	plt.show()
 
