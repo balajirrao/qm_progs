@@ -68,7 +68,7 @@ else:
 
 
 if options.lamda_range is not None :
-	lamda_space = range(*options.lamda_range)
+	lamda_space = np.linspace(*options.lamda_range)
 	_options += 1
 else:
 	lamda_space = [options.lamda]
